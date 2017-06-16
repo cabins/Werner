@@ -30,6 +30,19 @@ Werner Heisenberg 沃纳· 海森堡（1901-1976）是历史上最伟大的物�
 - Django 1.0+
 - ~PostgreSQL~（可使用 SQLite3 代替 PostgreSQL，也可以使用其他任何喜欢的数据库）
 
+### 如何运行
+进入到项目根目录中，然后运行：
+
+```bash
+sudo ./manage.py runserver 80
+```
+
+Windows 系统使用管理员权限运行 cmd，然后输入：
+
+```bash
+./manage.py runserver 80
+```
+
 ### 项目实现原理
 1. 把接口的完整路径作为 key，将要返回的自定义内容作为 value 存入到数据库中；
 2. 客户端通过修改 hosts 或者转发的方式，将请求转移到运行本服务的机器上；
