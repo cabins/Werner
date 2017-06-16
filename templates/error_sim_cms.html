@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% load staticfiles %}
+    <link rel="shortcut icon" type="image/png" href="{% static 'img/browser-404-error-internet-512.png' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <title>Werner容错测试系统</title>
+    <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+        $(function () {
+            $.getJSON("http://127.0.0.1/common/pingback/?project=HmtWebTool&function=ErrorSim&callback=?",
+                    function (result) {
+                    });
+        });
+    </script>
+</head>
+<body>
+<div class="container" style="margin-top: 5%;">
+    <div class="col-sm-12">
+        <ol class="breadcrumb">
+            <li class="active">Werner容错测试系统</li>
+        </ol>
+    </div>
+    <div class="col-sm-8">
+        <div class="input-group">
+            <input id="api" type="text" class="form-control" placeholder="在此输入接口名称"
+                   style='font-family: "Courier New", Courier, monospace' data-toggle="tooltip" data-placement="bottom"
+                   title="必填项, 填写域名之后, 问号之前的内容">
+
+            <span class="input-group-btn" id="query">
+                <button class="btn btn-default" id="get-default" type="button" data-toggle="tooltip"
+                        data-placement="bottom" title="获取填写接口的默认值">获取默认
+                </button>
+            </span>
+            {# 获取默认,使用AJAX #}
+            <script>
+                $("#get-default").click(function () {
+                    $.get("/error/sim/default/?api=" + $("#api").val(), function (result) {
+                        try {
+                            $("#json-text").val(JSON.stringify(JSON.parse(result), undefined, 4));
+                        } catch (err) {
+                            $("#json-text").val(result);
+                        }
+                    });
+                });
+            </script>
+            <span class="input-group-btn" id="get-current" data-toggle="tooltip"
+                  data-placement="bottom" title="获取填写接口的当前值">
+                <button class="btn btn-default" type="button">获取当前</button>
+            </span>
+            {# 获取默认,使用AJAX #}
+            <script>
+                $("#get-current").click(function () {
+                    $.get("/error/sim/current/?api=" + $("#api").val(), function (result) {
+                        try {
+                            $("#json-text").val(JSON.stringify(JSON.parse(result), undefined, 4));
+                        } catch (err) {
+                            $("#json-text").val(result);
+                        }
+                    });
+                });
+            </script>
+
+        </div>
+    </div>
+    <div class="col-sm-4" style="padding: 0;">
+        <div class="col-sm-4">
+            <input class="form-control" type="text" name="status-code" id="status-code" placeholder="*状态码,默认为200"
+                   data-toggle="tooltip" data-placement="bottom" title="*状态码设定, 不填为200">
+        </div>
+        <div class="col-sm-4">
+            <select name="http-s" id="http-s" class="form-control" data-toggle="tooltip" data-placement="bottom"
+                    title="*协议类型,暂不支持">
+                <option value="0" selected="selected" disabled>http(暂不支持)</option>
+                <option value="1" disabled>https(暂不支持)</option>
+            </select>
+        </div>
+        <div class="col-sm-4">
+            <select name="enc-method" id="enc-method" class="form-control" data-toggle="tooltip" data-placement="bottom"
+                    title="返回内容的加密方式">
+                <option value="0">不加密</option>
+                <option value="1" selected="selected">v1.2</option>
+            </select>
+        </div>
+    </div>
+    <div class="col-sm-12" style="margin-top: 30px;">
+        <textarea name="json-text" class="form-control" id="json-text" rows="20" onchange="pretty();"
+                  style='font-family: "Courier New", Courier, monospace'
+                  placeholder="填写JSON格式文本(明文).光标失焦可自动格式化,若没有格式化,则填写的内容有误。"></textarea>
+        <script>
+            function pretty() {
+                try {
+                    var ugly = document.getElementById("json-text").value;
+                    var obj = JSON.parse(ugly.replace(/'/g, "\""));
+                    var pretty = JSON.stringify(obj, undefined, 4);
+                    document.getElementById("json-text").value = pretty;
+                } catch (err) {
+                }
+            }
+        </script>
+    </div>
+
+    <div class="col-sm-12" style="margin-top: 30px;">
+        <div>
+            <input id="submit" type="button" class="btn btn-success" value="提交生效">
+            <script>
+                $.ajaxSetup({
+                    data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+                });
+                $("#submit").click(function () {
+                    $("#log-text").text("提示: 请稍候……");
+
+                    $.post("/error/sim/commit/", {
+                                api: $("#api").val(),
+                                code: $("#status-code").val(),
+                                https: 0,
+                                encrypt: $("#enc-method").val(),
+                                current_value: $("#json-text").val()
+                            },
+                            function (data) {
+                                $("#log-text").text("提示: " + data);
+                            });
+                    $.getJSON("http://127.0.0.1/common/pingback/?project=HmtWebTool&function=ErrorSim&action=submit&callback=?",
+                            function (result) {
+                            });
+                });
+
+            </script>
+            <input id="reset" type="button" class="btn btn-default" value="重置文本" onclick="reset();">
+            <script>
+                function reset() {
+                    document.getElementById("json-text").value = "";
+                }
+            </script>
+            <span id="log-text" class="text-danger">
+
+            </span>
+        </div>
+
+    </div>
+
+
+    <div class="col-sm-12 text-success" id="result" style="margin-top: 30px; display: none;">
+    </div>
+</div>
+</body>
+</html>

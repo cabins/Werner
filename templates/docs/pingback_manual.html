@@ -1,0 +1,179 @@
+<div class="jumbotron">
+        <h3 class="page-header">如何参与统计</h3>
+        <p>如果想要你的系统也参与到这项统计中,你需要按照以下格式进行Pingback的上传。</p>
+        <!-- <a href="/pingback/show/">查看统计</a> -->
+    </div>
+
+    <div>
+        <h3 class="page-header">约定</h3>
+        <blockquote class="small">
+            所有请求均由用户端发出:若工具为网页工具,应当在前端通过JavaScript发出Pingback请求; 若工具为脚本工具,应当由脚本直接发出.
+            如下图所示.
+        </blockquote>
+        <img src="/static/img/pingback-01.png" alt="Pingback通过JS发出" class="img-rounded center-block" height="300px;">
+        <img src="/static/img/pingback-02.png" alt="Pingback通过脚本发出" class="img-rounded center-block" height="300px;">
+
+    </div>
+
+    <div>
+        <h3 class="page-header">Pingback地址及参数说明</h3>
+        <p>
+            <code>GET http://10.130.14.54/common/pingback/?project=proj&function=func&action=act</code>
+        </p>
+        <p>说明</p>
+    </div>
+    <div>
+        <table class="table table-responsive table-hover table-stripped table-reponsive table-bordered">
+            <tr>
+                <th>参数</th>
+                <th>含义</th>
+                <th>备注</th>
+            </tr>
+            <tr>
+                <td>METHOD</td>
+                <td>GET</td>
+                <td>请求的Method，不接受POST。设置了CSRF。</td>
+            </tr>
+            <tr>
+                <td>http://10.130.14.54/pingback/</td>
+                <td>接收Pingback的服务器地址</td>
+                <td>必填，不可为空</td>
+            </tr>
+            <tr>
+                <td>project</td>
+                <td>项目或工具集合名称</td>
+                <td>必填，不可为空</td>
+            </tr>
+            <tr>
+                <td>function</td>
+                <td>子功能名称</td>
+                <td>可不传，例如一个工具集合中的某一个工具名称,如工具没有子功能,则可不上传function字段</td>
+            </tr>
+            <tr>
+                <td>action</td>
+                <td>具体的动作发出的Pingback,此值对应工具的使用次数</td>
+                <td>可不传，例如JSON测试工具,若要在提交按钮上添加一个Pingback,则使用该项,若无则可不填写.</td>
+            </tr>
+        </table>
+    </div>
+    <div>
+        例如
+        <ol>
+            <li>
+                若工具AAA只有一个功能,可发送<code>http://10.130.14.54/common/pingback/?project=AAA</code>
+            </li>
+            <li>
+                若工具AAA只有一个功能,且对具体的action BBB做统计,可发送
+                <code>http://10.130.14.54/common/pingback/?project=AAA&action=BBB</code>
+            </li>
+            <li>
+                若工具AAA有多个子功能(其中有BBB),但不对具体的action做统计,可发送
+                <code>http://10.130.14.54/common/pingback/?project=AAA&function=BBB</code>
+            </li>
+
+            <li>
+                若工具AAA有多个子功能(其中有BBB),且对具体的action CCC做统计,可发送
+                <code>http://10.130.14.54/common/pingback/?project=AAA&function=BBB&action=CCC</code>
+            </li>
+        </ol>
+        即,除了project外,另外两个选项若需要统计,就加上;若不需要统计,就不用上传该字段.
+    </div>
+
+    <div>
+        <h3 class="page-header">各语言代码实现</h3>
+        <p>强烈建议大家自行封装成公共方法,在使用到Pingback的地方进行调用.</p>
+        <div>
+            <h4 class="page-header">Python</h4>
+<pre><code class="python"># Python3语法
+from urllib.request import urlopen
+urlopen("http://10.130.14.54/common/pingback/?project=proj&function=func&action=act", timeout=3)
+</code></pre>
+<pre><code class="python"># Python2语法
+from urllib2 import urlopen
+urlopen("http://10.130.14.54/common/pingback/?project=proj&function=func&action=act", timeout=3)
+</code></pre>
+
+            <h4 class="page-header">Shell</h4>
+<pre><code>curl "http://10.130.14.54/common/pingback/?project=proj&function=func&action=act"
+</code></pre>
+
+            <h4 class="page-header">JavaScript</h4>
+<pre><code class="javascript">/* 请自行解决跨域问题，或忽略跨域问题。 */
+var xhr = new XMLHttpRequest();
+xhr.open('GET', "http://10.130.14.54/common/pingback/?project=proj&function=func&action=act", true);
+xhr.send();
+</code></pre>
+<h4 class="page-header">jQuery</h4>
+<pre><code>/* 使用JSONP解决跨域问题，额外添加一个参数&callback=? */
+$(function() {
+        $.getJSON("http://10.130.14.54/common/pingback/?project=HmtWebTool&function=ErrorSim&callback=?", function(result) {
+
+        });
+    });
+</code></pre>
+
+        </div>
+        其他语言,待补充……
+    </div>
+    <div>
+        <h3 class="page-header">
+            服务器返回
+        </h3>
+        <p>服务器成功处理之后,会返回带有 <code>{"result": "OK"}</code>的字符串, 否则会返回异常。</p>
+        <p>
+            若异常由于跨域引起，可忽略。也可以自行解决跨域问题。
+        </p>
+    </div>
+    <div>
+        <h3 class="page-header">后续工作</h3>
+        <p>到此为止,你的Pingback已经被服务器接收,储存,展示了。</p>
+        <p>但是细心的你一定发现了,页面上显示的项目名称以及功能名称仍然还是英文的。
+            若想给它们一个可视化的中文名称,你可以任选下列之一方式解决：
+            <h4>（一）邮件</h4>
+            请将具体的对应表发送到
+            <a href="mailto:konglingcun@sogou-inc.com?Subject=Pingback配置文件对应表">我的邮箱</a>
+            即可.
+        </p>
+    </div>
+    <div>
+        邮件内容不限定格式,如果有可能,请按照下表格式填写.
+        <table class="table table-hover table-bordered">
+            <tr>
+                <th>项目英文代号</th>
+                <th>项目中文名称</th>
+                <th>子功能英文代号</th>
+                <th>子功能中文名称</th>
+            </tr>
+            <tr>
+                <td>JsonTest</td>
+                <td>Json容错系统</td>
+                <td>-</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>HmtWebTool</td>
+                <td>号码通网页工具</td>
+                <td>ErrorSim</td>
+                <td>号码通容错系统</td>
+            </tr>
+        </table>
+    </div>
+    <h4>（二）自行修改</h4>
+    <div>
+        登陆到 <a href="/admin/">管理页面</a>，通过 <code>test</code>用户名及其密码 <code>withoutpass</code>，进行添加和修改。为保护数据，没有开放包括删除在内的更多权限，其他权限的修改，请通过方式一完成。
+
+    </div>
+</div>
+<div class="footer">
+    <hr />
+
+</div>
+<script>
+    $(function() {
+        $('pre code').each(function(i, block) {
+            hljs.highlightBlock(block);
+        });
+    });
+</script>
+{#<script src="{% static 'highlight/highlight.js' %}"></script>#}
+{#<script>hljs.initHighlightingOnLoad();</script>#}

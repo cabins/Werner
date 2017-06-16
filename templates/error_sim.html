@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% load staticfiles %}
+    <link rel="shortcut icon" type="image/png" href="{% static 'img/browser-404-error-internet-512.png' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <title>号码通容错系统</title>
+
+    <script>
+        $(document).ready(function () {
+            $("#reset").on('click', function () {
+                $("#json-text").val('');
+            });
+
+            $("#query").on('click', function(){
+                var xhr = XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4) {
+                        if (xhr.status == 200) {
+                            document.getElementById("json-text").innerHTML = xhr.responseText;
+                        } else {
+                            document.getElementById("json-text").innerHTML = "";
+                        }
+                    } else {
+                        document.getElementById("json-text").innerHTML = "请稍候…";
+                    }
+                };
+
+                xhr.open('GET', '/error_sim_query/?inter=' + $("#inter").val());
+                xhr.send();
+            });
+
+            $("#submit").on('click', function(){
+                var xhr = XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4) {
+                        if (xhr.status == 200) {
+                            document.getElementById("result").innerHTML = xhr.responseText;
+                        } else {
+                            document.getElementById("result").innerHTML = "";
+                        }
+                    } else {
+                        document.getElementById("result").innerHTML = "请稍候…";
+                    }
+                };
+
+                xhr.open('GET', '/error_sim_submit/?inter=' + $("#inter").val() +
+                                '&status_code=' + $("#status-code").val() +
+                                '&https=' + $("#http-s").val() +
+                                '&enc_mathod=' + $("#enc-method").val() +
+                                '&value=' + $("#json-text").val()
+                );
+                xhr.send();
+            });
+        });
+    </script>
+
+</head>
+<body>
+<div style="height: 30px;"></div>
+<div class="container">
+    <div class="col-sm-12">
+        <ol class="breadcrumb">
+            <li><a href="/"><span class="glyphicon glyphicon-home"></span>&nbsp;首页</a></li>
+            <li class="active">号码通容错系统</li>
+            <li class="pull-right"><a href="/changelog/"><span class="glyphicon glyphicon-time"></span>&nbsp;升级日志</a>
+            </li>
+        </ol>
+    </div>
+    <div class="col-sm-6">
+        <div class="input-group">
+            <input id="inter" type="text" class="form-control" placeholder="在此输入接口名称">
+
+            <div class="input-group-addon">
+                <span class="button" id="query">查询</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="col-sm-4">
+            <select name="status-code" id="status-code" class="form-control">
+                <option value="200" selected="selected">状态码，默认为200</option>
+                <option value="400">400</option>
+                <option value="403">403</option>
+                <option value="404">404</option>
+                <option value="500">500</option>
+                <option value="502">502</option>
+            </select>
+        </div>
+        <div class="col-sm-4">
+            <select name="http-s" id="http-s" class="form-control">
+                <option value="0" selected="selected">http</option>
+                <option value="1">https</option>
+            </select>
+        </div>
+        <div class="col-sm-4">
+            <select name="enc-method" id="enc-method" class="form-control">
+                <option value="0" selected="selected">明文返回</option>
+                <option value="1.2">1.2密钥</option>
+            </select>
+        </div>
+    </div>
+    <div class="col-sm-12" style="margin-top: 30px;">
+        <textarea name="json-text" class="form-control" id="json-text" cols="30" rows="10"></textarea>
+    </div>
+
+    <div class="col-sm-12" style="margin-top: 30px;">
+        <div class="col-sm-6">
+            <input id="submit" type="button" class="btn btn-success" value="提交">
+            <input id="reset" type="button" class="btn btn-warning" value="重置文本">
+        </div>
+        <div class="col-sm-6">
+            <input id="verify" type="button" class="btn btn-info pull-right" value="校验JSON" disabled>
+        </div>
+        <script>
+            $("#verify").click(function () {
+                var jv = $("#json-text").val();
+                var regex = /^(https?:\/\/)+[^\\s]*/i;
+                if (jv.match(regex)) {
+                    jQuery.ajax({
+                        type: "get",
+                        async: false,
+                        url: 'http://www.bejson.com/api/bejson/fetch.php?u=' + encodeURIComponent(jv),
+                        dataType: "json",
+                        cache: false,
+                        success: function (j) {
+                            if (j.code != 1) {
+                                alert(j.msg);
+                            } else {
+                                $("#json-text").val(j.msg);
+                            }
+                        },
+                        error: function (err) {
+                            alert(err);
+                        }
+                    });
+
+                }
+            });
+        </script>
+    </div>
+    <div class="col-sm-12">
+        <pre id="result"></pre>
+    </div>
+</div>
+</body>
+</html>
